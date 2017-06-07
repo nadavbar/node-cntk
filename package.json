@@ -1,0 +1,29 @@
+{
+  "name": "node-cntk",
+  "version": "0.0.1",
+  "description": "Call CNTK directly from node.js",
+  "main": "main.js",
+  "dependencies": {
+    "nan": "^2.6.2"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "CNTK",
+    "Deep Learing"
+  ],
+  "os": [
+    "win32"
+  ],
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "build": "node-gyp build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nadavbar/node-cntk.git"
+  },
+  "homepage": "https://github.com/nadavbar/node-cntk",
+  "author": "nadavbar <nadavbar@gmail.com>",
+  "license": "MIT"
+}

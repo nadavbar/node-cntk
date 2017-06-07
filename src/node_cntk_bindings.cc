@@ -1,16 +1,14 @@
 #include "nan.h"
+#include "LoadModelAsyncWorker.h"
+#include "CNTKModelObjectWrap.h"
 
-using namespace v8;
+using v8::Local;
+using v8::Object;
+using v8::FunctionTemplate;
 
 NAN_METHOD(SetDefaultDevice)
 {
 	Nan::HandleScope scope;
-	// TODO: implement
-}
-
-NAN_METHOD(LoadModel)
-{
-	Nan::EscapableHandleScope scope;
 	// TODO: implement
 }
 
@@ -20,6 +18,8 @@ void Init(Local<Object> exports) {
 
 	exports->Set(Nan::New("loadModel").ToLocalChecked(),
 		Nan::New<FunctionTemplate>(LoadModel)->GetFunction());
+
+	CNTKModelObjectWrap::Init();
 }
 
 NODE_MODULE(node_win_shortcut_bindings, Init)

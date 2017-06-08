@@ -8,12 +8,14 @@
 class CNTKModelObjectWrap : public Nan::ObjectWrap {
 public:
 	static void Init();
-	
+	static v8::Handle<v8::Value> WrapModel(const CNTK::FunctionPtr& model);
+
 private:
-	explicit CNTKModelObjectWrap(CNTK::FunctionPtr model);
+	explicit CNTKModelObjectWrap();
 	~CNTKModelObjectWrap();
 
 	static NAN_METHOD(New);
+	static NAN_METHOD(Eval);
 
 	static inline Nan::Persistent<v8::Function> & constructor() {
 		static Nan::Persistent<v8::Function> my_constructor;

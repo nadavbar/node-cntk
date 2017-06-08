@@ -1,4 +1,5 @@
 #include "CNTKLibrary.h"
+#include "CNTKModelObjectWrap.h"
 #include "LoadModelAsyncWorker.h"
 #include "nan.h"
 #include <string>
@@ -27,7 +28,17 @@ public:
 
 	void Execute() {
 		// Load the model
-		auto modelFuncPtr = CNTK::Function::Load(_modelFilePath, _device);
+		// TODO: Handle errors!
+		// Does CNTK throw an exception if the model is missing?
+		try
+		{
+			_model = CNTK::Function::Load(_modelFilePath, _device);
+		}
+		catch(std::runtime_error e)
+		{
+			int a = 10;
+			a++;
+		}
 	}
 
 	// Executed when the async work is complete
@@ -36,8 +47,11 @@ public:
 	void HandleOKCallback() {
 		HandleScope scope;
 
+		// TODO: handle errors
+		auto modelWrap = CNTKModelObjectWrap::WrapModel(_model);
+
 		Local<Value> argv[] = {
-			Null(), 
+			modelWrap, 
 			Null()
 		};
 
@@ -47,7 +61,7 @@ public:
 private:
 	wstring _modelFilePath;
 	DeviceDescriptor _device;
-	//CntkModelWrap _model;
+	CNTK::FunctionPtr _model;
 };
 
 NAN_METHOD(LoadModel) {

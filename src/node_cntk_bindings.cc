@@ -1,6 +1,6 @@
-#include "nan.h"
 #include "LoadModelAsyncWorker.h"
 #include "CNTKModelObjectWrap.h"
+#include "nan.h"
 
 using v8::Local;
 using v8::Object;

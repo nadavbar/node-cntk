@@ -19,6 +19,7 @@ using Nan::To;
 using CNTK::DeviceDescriptor;
 
 using std::wstring;
+using std::string;
 
 class LoadModelAsyncWorker : public AsyncWorker {
 public:
@@ -28,16 +29,15 @@ public:
 
 	void Execute() {
 		// Load the model
-		// TODO: Handle errors!
-		// Does CNTK throw an exception if the model is missing?
 		try
 		{
 			_model = CNTK::Function::Load(_modelFilePath, _device);
+			_errorOccured = false;
 		}
 		catch(std::runtime_error e)
 		{
-			int a = 10;
-			a++;
+			_errorOccured = true;
+			_errorMessage = e.what();
 		}
 	}
 
@@ -47,12 +47,24 @@ public:
 	void HandleOKCallback() {
 		HandleScope scope;
 
-		// TODO: handle errors
-		auto modelWrap = CNTKModelObjectWrap::WrapModel(_model);
+		Local<Value> modelWrap;
+		Local<Value> error;
+		
+		if (!_errorOccured)
+		{
+			error = Null();
+			modelWrap = CNTKModelObjectWrap::WrapModel(_model);
+		}
+		else
+		{
+			string errorMessage = "Error occured during call to loadModel: " + _errorMessage;
+			error = Nan::Error(Nan::New<String>(errorMessage.c_str()).ToLocalChecked());
+			modelWrap = Null();
+		}
 
-		Local<Value> argv[] = {
-			modelWrap, 
-			Null()
+		Local<Value> argv[] = { 
+			error,
+			modelWrap
 		};
 
 		callback->Call(2, argv);
@@ -62,6 +74,8 @@ private:
 	wstring _modelFilePath;
 	DeviceDescriptor _device;
 	CNTK::FunctionPtr _model;
+	bool _errorOccured;
+	string _errorMessage;
 };
 
 NAN_METHOD(LoadModel) {

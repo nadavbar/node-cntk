@@ -1,4 +1,5 @@
 #include "CNTKModelObjectWrap.h"
+#include "EvalModelAsyncWorker.h"
 
 using Nan::EscapableHandleScope;
 
@@ -7,6 +8,7 @@ using v8::Handle;
 using v8::Local;
 using v8::Object;
 using v8::Value;
+using Nan::Callback;
 
 void CNTKModelObjectWrap::Init()
 {
@@ -26,7 +28,6 @@ Handle<Value> CNTKModelObjectWrap::WrapModel(const CNTK::FunctionPtr& model)
 	Local<Value> args[] = { Nan::Undefined() };
 
 	Local<Function> localRef = Nan::New<Function>(constructor());
-	//Local<Object> objectInstance = Nan::NewInstance(Nan::GetFunction(localRef).ToLocalChecked(), 0, args).ToLocalChecked
 	Local<Object> objectInstance = Nan::NewInstance(localRef, 0, args).ToLocalChecked();
 	if (objectInstance.IsEmpty())
 	{
@@ -61,7 +62,19 @@ NAN_METHOD(CNTKModelObjectWrap::New)
 	}
 }
 
-NAN_METHOD(CNTKModelObjectWrap::Eval)
-{
-	// TODO: implement
+NAN_METHOD(CNTKModelObjectWrap::Eval) {
+
+	if (info.Length() < 3 || !info[0]->IsObject() || info[1]->IsObject() || !info[2]->IsFunction())
+	{
+		Nan::ThrowTypeError("Bad usage, expected arguments are: input args[object], output args[object], completion callback [function]");
+		return;
+	}
+
+	// TODO: convert input args to the excpected CNTK input format
+
+	CNTKModelObjectWrap* objectWrap = Nan::ObjectWrap::Unwrap<CNTKModelObjectWrap>(info.This());
+	
+	Callback *callback = new Callback(info[2].As<Function>());
+
+	AsyncQueueWorker(new EvalModelAsyncWorker(callback, objectWrap->_model, CNTK::DeviceDescriptor::UseDefaultDevice()));
 }

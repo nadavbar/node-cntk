@@ -2,12 +2,14 @@
   "targets": [
   {
     "target_name": "node_cntk_bindings",
-    "sources": [ 
-      "src/node_cntk_bindings.cc",
+    "sources": [
+      "src/CNTKModelObjectWrap.h",
+      "src/CNTKModelObjectWrap.cc",
+      "src/EvalModelAsyncWorker.cc",
+      "src/EvalModelAsyncWorker.h",
       "src/LoadModelAsyncWorker.cc",
       "src/LoadModelAsyncWorker.h",
-      "src/CNTKModelObjectWrap.h",
-      "src/CNTKModelObjectWrap.cc"
+      "src/node_cntk_bindings.cc",
     ],
     "include_dirs": [ 
       "<!(node -e \"require('nan')\")",

@@ -34,7 +34,9 @@ private:
 	std::string _errorMessage;
 	CNTKEvalInputDataFloat _inputData;
 	CNTKEvalOutputNodesNames _outputNodesNames;
-	std::map<std::wstring, CNTK::ValuePtr> _outputVarsByName;
+	std::map<std::wstring, CNTK::Variable> _outputVarsByName;
+	std::unordered_map<CNTK::Variable, CNTK::ValuePtr> _outputVars;
+	int _samplesNum;
 };
 
 #endif

@@ -8,9 +8,11 @@
 #include <string>
 #include <sstream>
 
-
+using v8::Array;
 using v8::Function;
 using v8::Local;
+using v8::Object;
+using v8::Number;
 using v8::String;
 using v8::Value;
 using Nan::AsyncQueueWorker;
@@ -31,7 +33,8 @@ using std::unordered_map;
 
 EvalModelAsyncWorker::EvalModelAsyncWorker(Nan::Callback *callback, CNTK::FunctionPtr model, 
 	CNTKEvalInputDataFloat inputData, CNTKEvalOutputNodesNames outputNodesNames, const CNTK::DeviceDescriptor &device)
-		: AsyncWorker(callback), _model(model), _inputData(inputData), _outputNodesNames(outputNodesNames), _device(device) {}
+		: AsyncWorker(callback), _model(model), _inputData(inputData), _outputNodesNames(outputNodesNames),
+		 _device(device), _samplesNum(0) {}
 
 EvalModelAsyncWorker::~EvalModelAsyncWorker() {}
 
@@ -55,12 +58,19 @@ void EvalModelAsyncWorker::Execute()
 			}
 
 			CNTK::NDShape inputShape = inputVar.Shape().AppendShape({ 1, static_cast<size_t>(it->numberOfSamples) });
+
+			// TODO: support multi variables samples num
+			// Allow the use to define a "main" input node
+			if (_samplesNum <= 0)
+			{
+				_samplesNum = it->numberOfSamples;
+			}
+
 			CNTK::ValuePtr inputValue = CNTK::MakeSharedObject<CNTK::Value>(CNTK::MakeSharedObject<CNTK::NDArrayView>(inputShape, it->data, true));
 
 			inputVars[inputVar] = inputValue;
 		}
 
-		unordered_map<CNTK::Variable, CNTK::ValuePtr> outputVars;
 		for (auto it = _outputNodesNames.begin(); it != _outputNodesNames.end(); it++)
 		{
 			CNTK::Variable outputVar;
@@ -75,11 +85,11 @@ void EvalModelAsyncWorker::Execute()
 
 			CNTK::ValuePtr outputValue;
 
-			outputVars[outputVar] = outputValue;
-			_outputVarsByName[*it] = outputValue;
+			_outputVars[outputVar] = outputValue;
+			_outputVarsByName[*it] = outputVar;
 		}
 
-		_model->Forward(inputVars, outputVars, _device);
+		_model->Forward(inputVars, _outputVars, _device);
 		// Call the model
 		_errorOccured = false;
 	}
@@ -105,14 +115,52 @@ void EvalModelAsyncWorker::HandleOKCallback()
 	if (!_errorOccured)
 	{
 		error = Null();
-		// TODO: convert the result
-		// result = ...
+		result = Nan::New<Object>();
+
+		try
+		{
+			for (auto it = _outputVarsByName.begin(); it != _outputVarsByName.end(); it++)
+			{
+				// Get output value
+				CNTK::Variable outputVar = it->second;
+				CNTK::ValuePtr outputValue = _outputVars[outputVar];
+
+				CNTK::NDShape outputShape = outputVar.Shape().AppendShape({ 1, static_cast<size_t>(_samplesNum) });
+				std::vector<float> outputData(outputShape.TotalSize());
+				CNTK::NDArrayViewPtr cpuArrayOutput = CNTK::MakeSharedObject<CNTK::NDArrayView>(outputShape, outputData, false);
+				cpuArrayOutput->CopyFrom(*outputValue->Data());
+
+				// TODO: Use native array insted? Buffer?
+				size_t dataIndex = 0;
+				Local<Array> outputArr = Nan::New<Array>();
+				auto outputDim = outputVar.Shape()[0];
+				for (int i = 0; i < _samplesNum; i++)
+				{
+					dataIndex = i * outputDim;
+					Local<Array> resArr = Nan::New<Array>();
+					for (int j = dataIndex; j < (dataIndex + outputDim); j++)
+					{
+						Local<Number> val = Nan::New<Number>(outputData[j]);
+						Nan::Set(resArr, j, val);
+					}
+					Nan::Set(outputArr, i, resArr);
+				}
+
+				Nan::Set(Nan::To<Object>(result).ToLocalChecked(), Nan::New<String>(reinterpret_cast<const uint16_t*>(it->first.c_str())).ToLocalChecked(), outputArr);
+			}
+		}
+		catch (std::runtime_error e)
+		{
+			_errorOccured = true;
+			_errorMessage = e.what();
+		}
 	}
-	else
+
+	if (_errorOccured)
 	{
 		string errorMessage = "Error occured during call to evalModel: " + _errorMessage;
 		error = Nan::Error(Nan::New<String>(errorMessage.c_str()).ToLocalChecked());
-		result = Null();
+		//result = Null();
 	}
 
 	Local<Value> argv[] = {

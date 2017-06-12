@@ -1,14 +1,22 @@
 #include "CNTKModelObjectWrap.h"
 #include "EvalModelAsyncWorker.h"
 
+#include <string>
+#include <vector>
+
 using Nan::EscapableHandleScope;
 
+using v8::Array;
 using v8::Function;
 using v8::Handle;
 using v8::Local;
 using v8::Object;
+using v8::String;
 using v8::Value;
 using Nan::Callback;
+
+using std::wstring;
+using std::vector;
 
 void CNTKModelObjectWrap::Init()
 {
@@ -62,19 +70,72 @@ NAN_METHOD(CNTKModelObjectWrap::New)
 	}
 }
 
-NAN_METHOD(CNTKModelObjectWrap::Eval) {
-
-	if (info.Length() < 3 || !info[0]->IsObject() || info[1]->IsObject() || !info[2]->IsFunction())
+void CNTKModelObjectWrap::JsInputToCntk(Handle<Object> inputsObj, Handle<Array> outputsArr, CNTKEvalInputDataFloat& inputDataOut, CNTKEvalOutputNodesNames& outputNodeNamesOut)
+{
+	Nan::HandleScope scope;
+	
+	// Get the name of the output nodes
+	for (unsigned int i=0; i < outputsArr->Length(); i++)
 	{
-		Nan::ThrowTypeError("Bad usage, expected arguments are: input args[object], output args[object], completion callback [function]");
+		Local<String> outputNode = Nan::To<String>(Nan::Get(outputsArr, i).ToLocalChecked()).ToLocalChecked();
+		String::Value outputNodeVal(outputNode);
+		wstring outputNodeName(reinterpret_cast<wchar_t*>(*outputNodeVal));
+		outputNodeNamesOut.push_back(outputNodeName);
+	}
+
+	// get the input value names & values
+	Local<Array> inputKeyNames = Nan::GetPropertyNames(inputsObj).ToLocalChecked();
+	for (unsigned int i=0; i < inputKeyNames->Length(); i++)
+	{
+		CNTKEvalInputDataHolder<float> inputData;
+		Local<String> inputNode = Nan::To<String>(Nan::Get(inputKeyNames, i).ToLocalChecked()).ToLocalChecked();
+		String::Value inputNodeVal(inputNode);
+		inputData.inputVaraibleName = reinterpret_cast<wchar_t*>(*inputNodeVal);
+		
+		Local<Object> dataObj = Nan::To<Object>(Nan::Get(inputsObj, inputNode).ToLocalChecked()).ToLocalChecked();
+		
+		// get number of rows:
+		Local<String> lengthSymb = Nan::New<String>("length").ToLocalChecked();
+		inputData.numberOfSamples = Nan::To<int32_t>(Nan::Get(dataObj, lengthSymb).ToLocalChecked()).FromMaybe(0);
+		
+		// Insert object data to each row
+		// TODO: We might be able to optimize the initialiation by resizing according to the input data shape
+		// for now just leave this as is and let std do the resizing for us
+		for (int j=0; j < inputData.numberOfSamples; j++)
+		{
+			Local<Object> entryObj = Nan::To<Object>(Nan::Get(dataObj, j).ToLocalChecked()).ToLocalChecked();
+			// TODO: We might be able to optimize this for networks with fixes length input by calling this per items
+			int itemsCount = Nan::To<int32_t>(Nan::Get(entryObj, lengthSymb).ToLocalChecked()).FromMaybe(0);
+			for (int k=0; k < itemsCount; k++)
+			{
+				float value = static_cast<float>(Nan::To<double_t>(Nan::Get(entryObj, k).ToLocalChecked()).FromMaybe(0.0));
+				inputData.data.push_back(value);
+			}
+		}
+
+		// TODO: we might need to return the number of samples as well
+		inputDataOut.push_back(inputData);
+	}
+	
+}
+
+NAN_METHOD(CNTKModelObjectWrap::Eval) {
+	Nan::HandleScope scope;
+	if (info.Length() < 3 || !info[0]->IsObject() || !info[1]->IsArray() || !info[2]->IsFunction())
+	{
+		Nan::ThrowTypeError("Bad usage, expected arguments are: input args[key: input node name (string), value: input data (array of arrays)], output node names[array of strings], completion callback [function]");
 		return;
 	}
 
-	// TODO: convert input args to the excpected CNTK input format
+	Local<Object> inputDataObj = Nan::To<Object>(info[0]).ToLocalChecked();
+	Local<Array> outputNodesArr = info[1].As<Array>();
+
+	CNTKEvalInputDataFloat inputData;
+	CNTKEvalOutputNodesNames outputNodes;
+	JsInputToCntk(inputDataObj, outputNodesArr, inputData, outputNodes);
 
 	CNTKModelObjectWrap* objectWrap = Nan::ObjectWrap::Unwrap<CNTKModelObjectWrap>(info.This());
-	
 	Callback *callback = new Callback(info[2].As<Function>());
 
-	AsyncQueueWorker(new EvalModelAsyncWorker(callback, objectWrap->_model, CNTK::DeviceDescriptor::UseDefaultDevice()));
+	AsyncQueueWorker(new EvalModelAsyncWorker(callback, objectWrap->_model, inputData, outputNodes, CNTK::DeviceDescriptor::UseDefaultDevice()));
 }

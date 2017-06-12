@@ -2,6 +2,7 @@
 #define CNTK_MODEL_OBJECT_WRAP
 
 #include "CNTKLibrary.h"
+#include "EvalModelAsyncWorker.h"
 #include "Nan.h"
 #include <string>
 
@@ -13,6 +14,8 @@ public:
 private:
 	explicit CNTKModelObjectWrap();
 	~CNTKModelObjectWrap();
+
+	static void JsInputToCntk(v8::Handle<v8::Object> inputsObj, v8::Handle<v8::Array> outputsArr, CNTKEvalInputDataFloat& inputDataOut, CNTKEvalOutputNodesNames& outputNodeNamesOut);
 
 	static NAN_METHOD(New);
 	static NAN_METHOD(Eval);

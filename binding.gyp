@@ -5,6 +5,8 @@
     "sources": [
       "src/CNTKModelObjectWrap.h",
       "src/CNTKModelObjectWrap.cc",
+      "src/CNTKUtils.h",
+      "src/CNTKUtils.cc",
       "src/EvalModelAsyncWorker.cc",
       "src/EvalModelAsyncWorker.h",
       "src/LoadModelAsyncWorker.cc",

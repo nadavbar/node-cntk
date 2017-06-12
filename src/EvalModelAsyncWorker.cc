@@ -90,14 +90,16 @@ void EvalModelAsyncWorker::Execute()
 		}
 
 		_model->Forward(inputVars, _outputVars, _device);
+
 		// Call the model
 		_errorOccured = false;
 	}
-	catch (std::runtime_error e)
+	catch (std::exception e)
 	{
 		_errorOccured = true;
 		_errorMessage = e.what();
 	}
+
 }
 
 // Executed when the async work is complete
@@ -125,7 +127,7 @@ void EvalModelAsyncWorker::HandleOKCallback()
 				CNTK::Variable outputVar = it->second;
 				CNTK::ValuePtr outputValue = _outputVars[outputVar];
 
-				CNTK::NDShape outputShape = outputVar.Shape().AppendShape({ 1, static_cast<size_t>(_samplesNum) });
+				CNTK::NDShape outputShape = outputVar.Shape().AppendShape({ static_cast<size_t>(_samplesNum) });
 				std::vector<float> outputData(outputShape.TotalSize());
 				CNTK::NDArrayViewPtr cpuArrayOutput = CNTK::MakeSharedObject<CNTK::NDArrayView>(outputShape, outputData, false);
 				cpuArrayOutput->CopyFrom(*outputValue->Data());
@@ -150,6 +152,11 @@ void EvalModelAsyncWorker::HandleOKCallback()
 			}
 		}
 		catch (std::runtime_error e)
+		{
+			_errorOccured = true;
+			_errorMessage = e.what();
+		}
+		catch (std::invalid_argument e)
 		{
 			_errorOccured = true;
 			_errorMessage = e.what();

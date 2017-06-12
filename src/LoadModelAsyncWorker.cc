@@ -34,7 +34,7 @@ public:
 			_model = CNTK::Function::Load(_modelFilePath, _device);
 			_errorOccured = false;
 		}
-		catch(std::runtime_error e)
+		catch(std::exception e)
 		{
 			_errorOccured = true;
 			_errorMessage = e.what();

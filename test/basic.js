@@ -1,9 +1,11 @@
 process.env.PATH = "C:\\local\\cntk_2\\cntk;" + process.env.PATH;
 
-const path = require('path')
+const pixel = require('pixel');
+const path = require('path');
 const cntk = require('../.');
 
-modelPath = path.join(__dirname, 'model', 'mnist.cmf')
+modelPath = path.join(__dirname, 'mnist', 'mnist_conv.cmf');
+testImagePath = path.join(__dirname, 'mnist', 'sample_4.bmp');
 
 console.info("CNTK module:", cntk);
 
@@ -25,4 +27,30 @@ cntk.loadModel(modelPath, (err, model) => {
         return;
     }
     console.info('Got model!', model)
+
+    console.info('Loading img data for:', testImagePath)
+   
+    pixel.parse(testImagePath).then(function(images){
+        img = images[0];
+        // we only care about one channel since all three channels have the same values
+        var inputDataArr = new Uint8ClampedArray(img.width * img.height);
+        
+        for (var i =0; i <  inputDataArr.length; i++) {
+            inputDataArr[i] = img.data[i*4]
+        }
+
+        inputData = {
+            'input' : [inputDataArr]
+        }
+
+        outputNodes = ['output']
+        model.eval(inputData, outputNodes, (err, res)=>{
+            if (err) {
+                console.info(err);
+                return;
+            }
+            console.info('Eval result:', res);
+        })
+    });
+
 });

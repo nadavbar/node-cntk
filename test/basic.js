@@ -5,7 +5,8 @@ const path = require('path');
 const cntk = require('../.');
 
 modelPath = path.join(__dirname, 'mnist', 'mnist_conv.cmf');
-testImagePath = path.join(__dirname, 'mnist', 'sample_4.bmp');
+testImagePath1 = path.join(__dirname, 'mnist', 'sample_4.bmp');
+testImagePath2 = path.join(__dirname, 'mnist', 'sample_9.bmp');
 
 console.info("CNTK module:", cntk);
 
@@ -18,6 +19,16 @@ catch(ex) {
     cntk.setDefaultDeviceSync(CNTKDevices.CPU);
 }
 
+function rgbToOneChannel(img) {
+    var inputDataArr = new Uint8ClampedArray(img.width * img.height);
+        
+    for (var i =0; i <  inputDataArr.length; i++) {
+        inputDataArr[i] = img.data[i*4]
+    }
+
+    return inputDataArr;
+}
+
 console.info('Trying to load model at:', modelPath)
 //modelPath = "C:/code/node-cntk/test/model/mnist.cmf"
 
@@ -28,29 +39,26 @@ cntk.loadModel(modelPath, (err, model) => {
     }
     console.info('Got model!', model)
 
-    console.info('Loading img data for:', testImagePath)
+    console.info('Loading images data')
    
-    pixel.parse(testImagePath).then(function(images){
-        img = images[0];
-        // we only care about one channel since all three channels have the same values
-        var inputDataArr = new Uint8ClampedArray(img.width * img.height);
-        
-        for (var i =0; i <  inputDataArr.length; i++) {
-            inputDataArr[i] = img.data[i*4]
-        }
-
-        inputData = {
-            'input' : [inputDataArr]
-        }
-
-        outputNodes = ['output']
-        model.eval(inputData, outputNodes, (err, res)=>{
-            if (err) {
-                console.info(err);
-                return;
+    pixel.parse(testImagePath1).then(function(images1){
+        img1 = images1[0];
+        pixel.parse(testImagePath2).then(function(images2) {
+            img2 = images2[0];
+            inputData = {
+                'input' : [rgbToOneChannel(img1), rgbToOneChannel(img2) ]
             }
-            console.info('Eval result:', res);
-        })
+
+            outputNodes = ['output']
+            console.info('Calling eval')
+            model.eval(inputData, outputNodes, (err, res)=>{
+                if (err) {
+                    console.info(err);
+                    return;
+                }
+                console.info('Eval result:', res);
+            })
+        });
     });
 
 });

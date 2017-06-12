@@ -140,10 +140,10 @@ void EvalModelAsyncWorker::HandleOKCallback()
 				{
 					dataIndex = i * outputDim;
 					Local<Array> resArr = Nan::New<Array>();
-					for (int j = dataIndex; j < (dataIndex + outputDim); j++)
+					for (int j = dataIndex, k=0; j < (dataIndex + outputDim); j++, k++)
 					{
 						Local<Number> val = Nan::New<Number>(outputData[j]);
-						Nan::Set(resArr, j, val);
+						Nan::Set(resArr, k, val);
 					}
 					Nan::Set(outputArr, i, resArr);
 				}

@@ -6,10 +6,12 @@
   "dependencies": {
     "nan": "^2.6.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "pixel": "0.0.4"
+  },
   "keywords": [
     "CNTK",
-    "Deep Learing"
+    "Deep Learning"
   ],
   "os": [
     "win32"

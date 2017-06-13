@@ -94,7 +94,17 @@ void EvalModelAsyncWorker::Execute()
 		// Call the model
 		_errorOccured = false;
 	}
-	catch (std::exception e)
+	catch (const std::invalid_argument& e)
+	{
+		_errorOccured = true;
+		_errorMessage = e.what();
+	}
+	catch (const std::runtime_error& e)
+	{
+		_errorOccured = true;
+		_errorMessage = e.what();
+	}
+	catch (const std::exception& e)
 	{
 		_errorOccured = true;
 		_errorMessage = e.what();
@@ -151,12 +161,17 @@ void EvalModelAsyncWorker::HandleOKCallback()
 				Nan::Set(Nan::To<Object>(result).ToLocalChecked(), Nan::New<String>(reinterpret_cast<const uint16_t*>(it->first.c_str())).ToLocalChecked(), outputArr);
 			}
 		}
-		catch (std::runtime_error e)
+		catch (const std::invalid_argument& e)
 		{
 			_errorOccured = true;
 			_errorMessage = e.what();
 		}
-		catch (std::invalid_argument e)
+		catch (const std::runtime_error& e)
+		{
+			_errorOccured = true;
+			_errorMessage = e.what();
+		}
+		catch (const std::exception& e)
 		{
 			_errorOccured = true;
 			_errorMessage = e.what();
@@ -167,7 +182,7 @@ void EvalModelAsyncWorker::HandleOKCallback()
 	{
 		string errorMessage = "Error occured during call to evalModel: " + _errorMessage;
 		error = Nan::Error(Nan::New<String>(errorMessage.c_str()).ToLocalChecked());
-		//result = Null();
+		result = Null();
 	}
 
 	Local<Value> argv[] = {

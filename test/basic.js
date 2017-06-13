@@ -59,7 +59,7 @@ cntk.loadModel(modelPath, (err, model) => {
                     return;
                 }
                 console.info('Eval result:', res);
-                console.info('Maximum indices:', utils.argmax(res.output));
+                console.info('Classification result (maximum indices):', utils.argmax(res.output));
             })
         });
     });

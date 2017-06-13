@@ -34,7 +34,17 @@ public:
 			_model = CNTK::Function::Load(_modelFilePath, _device);
 			_errorOccured = false;
 		}
-		catch(std::exception e)
+		catch (const std::invalid_argument& e)
+		{
+			_errorOccured = true;
+			_errorMessage = e.what();
+		}
+		catch (const std::runtime_error& e)
+		{
+			_errorOccured = true;
+			_errorMessage = e.what();
+		}
+		catch (const std::exception& e)
 		{
 			_errorOccured = true;
 			_errorMessage = e.what();

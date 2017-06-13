@@ -32,8 +32,8 @@ using std::unordered_map;
 
 
 EvalModelAsyncWorker::EvalModelAsyncWorker(Nan::Callback *callback, CNTK::FunctionPtr model, 
-	CNTKEvalInputDataFloat inputData, CNTKEvalOutputNodesNames outputNodesNames, const CNTK::DeviceDescriptor &device)
-		: AsyncWorker(callback), _model(model), _inputData(inputData), _outputNodesNames(outputNodesNames),
+	CNTKEvalInputDataFloat inputData, CNTKEvalOutputVariablesNames outputVariablesNames, const CNTK::DeviceDescriptor &device)
+		: AsyncWorker(callback), _model(model), _inputData(inputData), _outputVariablesNames(outputVariablesNames),
 		 _device(device), _samplesNum(0) {}
 
 EvalModelAsyncWorker::~EvalModelAsyncWorker() {}
@@ -71,7 +71,7 @@ void EvalModelAsyncWorker::Execute()
 			inputVars[inputVar] = inputValue;
 		}
 
-		for (auto it = _outputNodesNames.begin(); it != _outputNodesNames.end(); it++)
+		for (auto it = _outputVariablesNames.begin(); it != _outputVariablesNames.end(); it++)
 		{
 			CNTK::Variable outputVar;
 			if (!CNTKUtils::GetOutputVaraiableByName(_model, *it, outputVar))

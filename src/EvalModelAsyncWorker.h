@@ -17,11 +17,11 @@ public:
 };
 
 typedef std::vector<CNTKEvalInputDataHolder<float>> CNTKEvalInputDataFloat;
-typedef std::vector<std::wstring> CNTKEvalOutputNodesNames;
+typedef std::vector<std::wstring> CNTKEvalOutputVariablesNames;
 
 class EvalModelAsyncWorker : public Nan::AsyncWorker {
 public:
-	EvalModelAsyncWorker(Nan::Callback *callback, CNTK::FunctionPtr model, CNTKEvalInputDataFloat inputData, CNTKEvalOutputNodesNames outputNodesNames,const CNTK::DeviceDescriptor &device);
+	EvalModelAsyncWorker(Nan::Callback *callback, CNTK::FunctionPtr model, CNTKEvalInputDataFloat inputData, CNTKEvalOutputVariablesNames outputVariablesNames,const CNTK::DeviceDescriptor &device);
 	~EvalModelAsyncWorker();
 	void Execute();
 	void HandleOKCallback();
@@ -33,7 +33,7 @@ private:
 	bool _errorOccured;
 	std::string _errorMessage;
 	CNTKEvalInputDataFloat _inputData;
-	CNTKEvalOutputNodesNames _outputNodesNames;
+	CNTKEvalOutputVariablesNames _outputVariablesNames;
 	std::map<std::wstring, CNTK::Variable> _outputVarsByName;
 	std::unordered_map<CNTK::Variable, CNTK::ValuePtr> _outputVars;
 	int _samplesNum;

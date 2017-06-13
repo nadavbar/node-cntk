@@ -12,7 +12,7 @@ That is, you need to first train you model using CNTK's python (or Brain-Script)
 
 1. Require the module and set the default device:
 
-```
+```javascript
 const cntk = require('node-cntk');
 
 try {
@@ -29,7 +29,7 @@ Note that for now you can set the device globally, in the future this module wil
 
 2. Load the model using the <b>loadModel</b> async method:
 
-```
+```javascript
 // Load the model 
 var modelPath = path.join(__dirname, 'mnist', 'mnist_conv.cmf');
 
@@ -47,7 +47,7 @@ cntk.loadModel(modelPath, (err, model) => {
 
 3. Evaluate a sample (or samples) using the loaded model:
 
-```
+```javascript
 // get the data sample
 var dataSample = [...];
 // in our case, 'input' is the name of the input variable for the model. This can differ across models.
@@ -80,7 +80,6 @@ Current list of major work items (For full list, please refer to the issues tab)
 
 - [x] Basic native bindings for setDefaultDevice, loadModel, and eval.
 - [x] Basic sample with local model evaluation.
-- [ ] Extend evalModel to infer input and output variables automatically (when possible).
 - [ ] Extend native Model class APIs to support model inspection in JavaScript code.
 - [ ] MNIST model web server sample.
 - [ ] Keras sample: train Keras model with CNTK backend and then load it in node.js.

@@ -45,11 +45,27 @@ void EvalModelAsyncWorker::Execute()
 	try
 	{
 		unordered_map<CNTK::Variable, CNTK::ValuePtr> inputVars;
+		int index = 0;
+		auto modelInputs = _model->Arguments();
 		for (auto it = _inputData.begin(); it != _inputData.end(); it++)
 		{
 			CNTK::Variable inputVar;
 			// TODO: optimize this such that the model wrap will hold this instead
-			if (!CNTKUtils::GetInputVariableByName(_model, it->inputVaraibleName, inputVar))
+
+			if (it->inputVaraibleName.empty())
+			{
+				if (index > modelInputs.size())
+				{
+					stringstream errorMessageStream;
+					errorMessageStream << "Error: Provided number of input variables exceed the number that the model expects (" << modelInputs.size() << ")";
+					_errorMessage = errorMessageStream.str();
+					_errorOccured = true;
+					return;
+				}
+
+				inputVar = modelInputs[index];
+			}
+			else if (!CNTKUtils::GetInputVariableByName(_model, it->inputVaraibleName, inputVar))
 			{
 				stringstream errorMessageStream;
 				errorMessageStream << "Input variable: '" << it->inputVaraibleName.c_str() << "' was not found in model.";
@@ -70,6 +86,7 @@ void EvalModelAsyncWorker::Execute()
 			CNTK::ValuePtr inputValue = CNTK::MakeSharedObject<CNTK::Value>(CNTK::MakeSharedObject<CNTK::NDArrayView>(inputShape, it->data, true));
 
 			inputVars[inputVar] = inputValue;
+			index++;
 		}
 
 		if (_outputVariablesNames.size() > 0)

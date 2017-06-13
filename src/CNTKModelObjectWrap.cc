@@ -70,6 +70,28 @@ NAN_METHOD(CNTKModelObjectWrap::New)
 	}
 }
 
+void CNTKModelObjectWrap::JsArrayToCntkInputData(Local<Object> dataObj, CNTKEvalInputDataHolder<float> &inputData)
+{
+	// get number of rows:
+	Local<String> lengthSymb = Nan::New<String>("length").ToLocalChecked();
+	inputData.numberOfSamples = Nan::To<int32_t>(Nan::Get(dataObj, lengthSymb).ToLocalChecked()).FromMaybe(0);
+
+	// Insert object data to each row
+	// TODO: We might be able to optimize the initialiation by resizing according to the input data shape
+	// for now just leave this as is and let std do the resizing for us
+	for (int j = 0; j < inputData.numberOfSamples; j++)
+	{
+		Local<Object> entryObj = Nan::To<Object>(Nan::Get(dataObj, j).ToLocalChecked()).ToLocalChecked();
+		// TODO: We might be able to optimize this for networks with fixes length input by calling this per items
+		int itemsCount = Nan::To<int32_t>(Nan::Get(entryObj, lengthSymb).ToLocalChecked()).FromMaybe(0);
+		for (int k = 0; k < itemsCount; k++)
+		{
+			float value = static_cast<float>(Nan::To<double_t>(Nan::Get(entryObj, k).ToLocalChecked()).FromMaybe(0.0));
+			inputData.data.push_back(value);
+		}
+	}
+}
+
 void CNTKModelObjectWrap::JsInputToCntk(Handle<Object> inputsObj, Handle<Array> outputsArr, CNTKEvalInputDataFloat& inputDataOut, CNTKEvalOutputVariablesNames& outputVariablesNamesOut)
 {
 	Nan::HandleScope scope;
@@ -85,38 +107,61 @@ void CNTKModelObjectWrap::JsInputToCntk(Handle<Object> inputsObj, Handle<Array> 
 		}
 	}
 
-	// get the input value names & values
-	Local<Array> inputKeyNames = Nan::GetPropertyNames(inputsObj).ToLocalChecked();
-	for (unsigned int i=0; i < inputKeyNames->Length(); i++)
+	// get the input value names & value
+
+	if (inputsObj->IsArray())
 	{
-		CNTKEvalInputDataHolder<float> inputData;
-		Local<String> inputNode = Nan::To<String>(Nan::Get(inputKeyNames, i).ToLocalChecked()).ToLocalChecked();
-		String::Value inputNodeVal(inputNode);
-		inputData.inputVaraibleName = reinterpret_cast<wchar_t*>(*inputNodeVal);
-		
-		Local<Object> dataObj = Nan::To<Object>(Nan::Get(inputsObj, inputNode).ToLocalChecked()).ToLocalChecked();
-		
-		// get number of rows:
-		Local<String> lengthSymb = Nan::New<String>("length").ToLocalChecked();
-		inputData.numberOfSamples = Nan::To<int32_t>(Nan::Get(dataObj, lengthSymb).ToLocalChecked()).FromMaybe(0);
-		
-		// Insert object data to each row
-		// TODO: We might be able to optimize the initialiation by resizing according to the input data shape
-		// for now just leave this as is and let std do the resizing for us
-		for (int j=0; j < inputData.numberOfSamples; j++)
-		{
-			Local<Object> entryObj = Nan::To<Object>(Nan::Get(dataObj, j).ToLocalChecked()).ToLocalChecked();
-			// TODO: We might be able to optimize this for networks with fixes length input by calling this per items
-			int itemsCount = Nan::To<int32_t>(Nan::Get(entryObj, lengthSymb).ToLocalChecked()).FromMaybe(0);
-			for (int k=0; k < itemsCount; k++)
-			{
-				float value = static_cast<float>(Nan::To<double_t>(Nan::Get(entryObj, k).ToLocalChecked()).FromMaybe(0.0));
-				inputData.data.push_back(value);
+		Local<Array> inputsArr = inputsObj.As<Array>();
+
+		bool isArrayOfArrays = false;
+		if (inputsArr->Length() > 0) {
+			Local<Object> firstObj = Nan::To<Object>(Nan::Get(inputsObj, 0).ToLocalChecked()).ToLocalChecked();
+			Local<String> lengthSymb = Nan::New<String>("length").ToLocalChecked();
+			int firstArrLength = Nan::To<int32_t>(Nan::Get(firstObj, lengthSymb).ToLocalChecked()).FromMaybe(0);
+			if (firstArrLength > 0) {
+				Local<Object> firstNestedObj = Nan::To<Object>(Nan::Get(firstObj, 0).ToLocalChecked()).ToLocalChecked();
+				int nestedArrLength = Nan::To<int32_t>(Nan::Get(firstNestedObj, lengthSymb).ToLocalChecked()).FromMaybe(0);
+				isArrayOfArrays = nestedArrLength > 0;
 			}
 		}
 
-		// TODO: we might need to return the number of samples as well
-		inputDataOut.push_back(inputData);
+		// if this is an array of arrays of samples
+		if (isArrayOfArrays)
+		{
+			for (unsigned int i = 0; i < inputsArr->Length(); i++)
+			{
+				CNTKEvalInputDataHolder<float> inputData;
+
+				Local<Object> dataObj = Nan::To<Object>(Nan::Get(inputsArr, i).ToLocalChecked()).ToLocalChecked();
+
+				JsArrayToCntkInputData(dataObj, inputData);
+				inputDataOut.push_back(inputData);
+			}
+		}
+		else // only one array which contain the samples
+		{
+			CNTKEvalInputDataHolder<float> inputData;
+			JsArrayToCntkInputData(inputsObj, inputData);
+			inputDataOut.push_back(inputData);
+		}
+	}
+	else // object with keys
+	{ 
+		Local<Array> inputKeyNames = Nan::GetPropertyNames(inputsObj).ToLocalChecked();
+
+		for (unsigned int i = 0; i < inputKeyNames->Length(); i++)
+		{
+			CNTKEvalInputDataHolder<float> inputData;
+			Local<String> inputNode = Nan::To<String>(Nan::Get(inputKeyNames, i).ToLocalChecked()).ToLocalChecked();
+			String::Value inputNodeVal(inputNode);
+			inputData.inputVaraibleName = reinterpret_cast<wchar_t*>(*inputNodeVal);
+
+			Local<Object> dataObj = Nan::To<Object>(Nan::Get(inputsObj, inputNode).ToLocalChecked()).ToLocalChecked();
+
+			JsArrayToCntkInputData(dataObj, inputData);
+
+			inputDataOut.push_back(inputData);
+		}
 	}
 	
 }

@@ -45,13 +45,21 @@ cntk.loadModel(modelPath, (err, model) => {
         img1 = images1[0];
         pixel.parse(testImagePath2).then(function(images2) {
             img2 = images2[0];
-            inputData = {
+            // inputs data  can be an object with variable names
+            /*inputData = {
                 'input' : [rgbToOneChannel(img1), rgbToOneChannel(img2) ]
-            }
+            }*/
+            
+            // this also works
+            //inputData = [[rgbToOneChannel(img1), rgbToOneChannel(img2)]]
+            
+            // and this works as well
+            inputData = [rgbToOneChannel(img1), rgbToOneChannel(img2)]
 
+            // you can optionally specify output nodes that you are interested in
             //outputNodes = ['output']
             console.info('Calling eval')
-            model.eval(inputData, (err, res)=>{
+            model.eval(inputData, /*outputNodes,*/ (err, res)=>{
                 if (err) {
                     console.info(err);
                     return;

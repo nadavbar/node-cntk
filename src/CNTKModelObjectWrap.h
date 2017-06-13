@@ -16,6 +16,7 @@ private:
 	~CNTKModelObjectWrap();
 
 	static void JsInputToCntk(v8::Handle<v8::Object> inputsObj, v8::Handle<v8::Array> outputsArr, CNTKEvalInputDataFloat& inputDataOut, CNTKEvalOutputVariablesNames& outputVariablesNamesOut);
+	static void CNTKModelObjectWrap::JsArrayToCntkInputData(v8::Local<v8::Object> dataObj, CNTKEvalInputDataHolder<float> &inputData);
 
 	static NAN_METHOD(New);
 	static NAN_METHOD(Eval);

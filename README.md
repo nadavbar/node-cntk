@@ -21,7 +21,7 @@ try {
 }
 catch(ex) {
     // failed to set device to GPU, try to set to CPU instead
-    cntk.setDefaultDeviceSync(CNTKDevices.CPU);
+    cntk.setDefaultDeviceSync(cntk.CNTKDevices.CPU);
 }
 ```
 

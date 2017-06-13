@@ -29,6 +29,7 @@ using std::string;
 using std::map;
 using std::stringstream;
 using std::unordered_map;
+using std::vector;
 
 
 EvalModelAsyncWorker::EvalModelAsyncWorker(Nan::Callback *callback, CNTK::FunctionPtr model, 
@@ -71,22 +72,38 @@ void EvalModelAsyncWorker::Execute()
 			inputVars[inputVar] = inputValue;
 		}
 
-		for (auto it = _outputVariablesNames.begin(); it != _outputVariablesNames.end(); it++)
+		if (_outputVariablesNames.size() > 0)
 		{
-			CNTK::Variable outputVar;
-			if (!CNTKUtils::GetOutputVaraiableByName(_model, *it, outputVar))
+			for (auto it = _outputVariablesNames.begin(); it != _outputVariablesNames.end(); it++)
 			{
-				stringstream errorMessageStream;
-				errorMessageStream << "Output variable: '" << it->c_str() << "' was not found in model.";
-				_errorMessage = errorMessageStream.str();
-				_errorOccured = true;
-				return;
+				CNTK::Variable outputVar;
+				if (!CNTKUtils::GetOutputVaraiableByName(_model, *it, outputVar))
+				{
+					stringstream errorMessageStream;
+					errorMessageStream << "Output variable: '" << it->c_str() << "' was not found in model.";
+					_errorMessage = errorMessageStream.str();
+					_errorOccured = true;
+					return;
+				}
+
+				CNTK::ValuePtr outputValue;
+
+				_outputVars[outputVar] = outputValue;
+				_outputVarsByName[*it] = outputVar;
 			}
-
-			CNTK::ValuePtr outputValue;
-
-			_outputVars[outputVar] = outputValue;
-			_outputVarsByName[*it] = outputVar;
+		}
+		else 
+		{
+			// Output vars weren't specified explicitly, so we'll just get them from the model
+			vector<CNTK::Variable> outputVars = _model->Outputs();
+			for (auto outputVar : outputVars)
+			{
+				wstring varName = outputVar.Name();
+				_outputVariablesNames.push_back(varName);
+				CNTK::ValuePtr outputValue;
+				_outputVars[outputVar] = outputValue;
+				_outputVarsByName[varName] = outputVar;
+			}
 		}
 
 		_model->Forward(inputVars, _outputVars, _device);

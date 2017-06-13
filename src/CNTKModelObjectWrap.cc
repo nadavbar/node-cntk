@@ -75,12 +75,14 @@ void CNTKModelObjectWrap::JsInputToCntk(Handle<Object> inputsObj, Handle<Array> 
 	Nan::HandleScope scope;
 	
 	// Get the name of the output nodes
-	for (unsigned int i=0; i < outputsArr->Length(); i++)
-	{
-		Local<String> outputNode = Nan::To<String>(Nan::Get(outputsArr, i).ToLocalChecked()).ToLocalChecked();
-		String::Value outputNodeVal(outputNode);
-		wstring outputNodeName(reinterpret_cast<wchar_t*>(*outputNodeVal));
-		outputVariablesNamesOut.push_back(outputNodeName);
+	if (!outputsArr.IsEmpty()) {
+		for (unsigned int i = 0; i < outputsArr->Length(); i++)
+		{
+			Local<String> outputNode = Nan::To<String>(Nan::Get(outputsArr, i).ToLocalChecked()).ToLocalChecked();
+			String::Value outputNodeVal(outputNode);
+			wstring outputNodeName(reinterpret_cast<wchar_t*>(*outputNodeVal));
+			outputVariablesNamesOut.push_back(outputNodeName);
+		}
 	}
 
 	// get the input value names & values
@@ -121,21 +123,27 @@ void CNTKModelObjectWrap::JsInputToCntk(Handle<Object> inputsObj, Handle<Array> 
 
 NAN_METHOD(CNTKModelObjectWrap::Eval) {
 	Nan::HandleScope scope;
-	if (info.Length() < 3 || !info[0]->IsObject() || !info[1]->IsArray() || !info[2]->IsFunction())
+	if (info.Length() < 2 || !info[info.Length() - 1]->IsFunction() || !info[0]->IsObject() || (info.Length() > 2 && !info[1]->IsArray()))
 	{
-		Nan::ThrowTypeError("Bad usage, expected arguments are: input args[key: input node name (string), value: input data (array of arrays)], output node names[array of strings], completion callback [function]");
+		Nan::ThrowTypeError("Bad usage, expected arguments are: input args[key: input node name (string), value: input data (array of arrays)], optional: output node names[array of strings], completion callback [function]");
 		return;
 	}
 
 	Local<Object> inputDataObj = Nan::To<Object>(info[0]).ToLocalChecked();
-	Local<Array> outputNodesArr = info[1].As<Array>();
+	
+	Local<Array> outputNodesArr;
+	if (info.Length() > 2)
+	{
+		outputNodesArr = info[1].As<Array>();
+	}
 
 	CNTKEvalInputDataFloat inputData;
 	CNTKEvalOutputVariablesNames outputVariables;
 	JsInputToCntk(inputDataObj, outputNodesArr, inputData, outputVariables);
 
 	CNTKModelObjectWrap* objectWrap = Nan::ObjectWrap::Unwrap<CNTKModelObjectWrap>(info.This());
-	Callback *callback = new Callback(info[2].As<Function>());
+
+	Callback *callback = new Callback(info[info.Length() -1].As<Function>());
 
 	AsyncQueueWorker(new EvalModelAsyncWorker(callback, objectWrap->_model, inputData, outputVariables, CNTK::DeviceDescriptor::UseDefaultDevice()));
 }

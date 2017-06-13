@@ -49,9 +49,9 @@ cntk.loadModel(modelPath, (err, model) => {
                 'input' : [rgbToOneChannel(img1), rgbToOneChannel(img2) ]
             }
 
-            outputNodes = ['output']
+            //outputNodes = ['output']
             console.info('Calling eval')
-            model.eval(inputData, outputNodes, (err, res)=>{
+            model.eval(inputData, (err, res)=>{
                 if (err) {
                     console.info(err);
                     return;

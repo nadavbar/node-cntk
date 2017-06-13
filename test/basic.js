@@ -2,7 +2,9 @@ process.env.PATH = "C:\\local\\cntk_2\\cntk;" + process.env.PATH;
 
 const pixel = require('pixel');
 const path = require('path');
-const cntk = require('../.');
+const m = require('../.');
+const cntk = m.cntk;
+const utils = m.utils;
 
 modelPath = path.join(__dirname, 'mnist', 'mnist_conv.cmf');
 testImagePath1 = path.join(__dirname, 'mnist', 'sample_4.bmp');
@@ -57,6 +59,7 @@ cntk.loadModel(modelPath, (err, model) => {
                     return;
                 }
                 console.info('Eval result:', res);
+                console.info('Maximum indices:', utils.argmax(res.output));
             })
         });
     });

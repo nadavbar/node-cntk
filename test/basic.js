@@ -1,5 +1,3 @@
-process.env.PATH = "C:\\local\\cntk_2\\cntk;" + process.env.PATH;
-
 const pixel = require('pixel');
 const path = require('path');
 const cntk = require('../.');

@@ -17,11 +17,11 @@ const cntk = require('node-cntk');
 
 try {
     // try to set the default device to GPU with device Id 0
-    cntk.setDefaultDeviceSync(cntk.CNTKDevices.GPU /*, deviceId (default is 0) */);
+    cntk.setDefaultDeviceSync(cntk.devices.gpu /*, deviceId (default is 0) */);
 }
 catch(ex) {
     // failed to set device to GPU, try to set to CPU instead
-    cntk.setDefaultDeviceSync(cntk.CNTKDevices.CPU);
+    cntk.setDefaultDeviceSync(cntk.devices.cpu);
 }
 ```
 
@@ -50,25 +50,40 @@ cntk.loadModel(modelPath, (err, model) => {
 ```javascript
 // get the data sample
 var dataSample = [...];
-// in our case, 'input' is the name of the input variable for the model. This can differ across models.
- inputData = {
-    'input' : [ dataSample ]
-}
 
-// Set the name of the output nodes that we will like to get the results for
-// For this model we're just gonna assume it called "output"
-outputVariables = ['output']
+// the input data is a batch of data, e.g. array of arrays/buffers, etc:
+inputData = [dataSample]
+
+// Alternatively, you can also provide a dictionary where each key is the name of the input variable, and the value is the data. // This is useful in case your model have more than input variables. 
+//inputData = {
+//    'input' : [ dataSample ]
+//}
+
+// In case you are interested in a specific output variable, you can explicitly provide a list if output variable names
+// that the eval function will get the evaluation for.
+// If you don't provide any, the eval function will just return the default model output variables.
+
+//outputVariables = ['output']
     
-model.eval(inputData, outputVariables, (err, res)=>{
+model.eval(inputData, /* outputVariables, */ (err, res)=>{
     if (err) {
         console.info(err);
         return;
     }
 
     // Print the result object.
-    // The result object will hold an array with the evaluation result for each output variable 
+    // The result object will hold an object with the name of the output variable as key, and for each key 
+    // the value will be an array with the evaluation result for each data samples 
     
     console.info('Eval result:', res);
+
+    // For the MNIST example, we will have the following output 
+    // (note that "output" is the name of the model's output variable):
+    // 
+    // Eval result: { output:
+    // [ [ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 ],
+    // [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ] ] }
+    //
 })
 ```
 

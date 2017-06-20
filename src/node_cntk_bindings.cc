@@ -86,10 +86,10 @@ void Init(Local<Object> exports) {
 
 	// Init devices enum
 	Local<Object> devicesEnum = Nan::New<Object>();
-	Nan::Set(devicesEnum, Nan::New<String>("GPU").ToLocalChecked(), Nan::New<Integer>(CNTKDevices::GPU));
-	Nan::Set(devicesEnum, Nan::New<String>("CPU").ToLocalChecked(), Nan::New<Integer>(CNTKDevices::CPU));
+	Nan::Set(devicesEnum, Nan::New<String>("gpu").ToLocalChecked(), Nan::New<Integer>(CNTKDevices::GPU));
+	Nan::Set(devicesEnum, Nan::New<String>("cpu").ToLocalChecked(), Nan::New<Integer>(CNTKDevices::CPU));
 
-	Nan::Set(exports, Nan::New<String>("CNTKDevices").ToLocalChecked(), devicesEnum);
+	Nan::Set(exports, Nan::New<String>("devices").ToLocalChecked(), devicesEnum);
 	
 	Nan::SetMethod(exports, "setDefaultDeviceSync", SetDefaultDeviceSync);
 	Nan::SetMethod(exports, "loadModel", LoadModel);

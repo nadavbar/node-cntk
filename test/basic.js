@@ -10,11 +10,11 @@ console.info("CNTK module:", cntk);
 
 console.info("Try setting device to GPU");
 try {
-    cntk.setDefaultDeviceSync(cntk.CNTKDevices.GPU);
+    cntk.setDefaultDeviceSync(cntk.devices.gpu);
 }
 catch(ex) {
     console.info("Failed setting GPU device, setting CPU instead");
-    cntk.setDefaultDeviceSync(cntk.CNTKDevices.CPU);
+    cntk.setDefaultDeviceSync(cntk.devices.cpu);
 }
 
 function rgbToOneChannel(img) {
@@ -28,7 +28,6 @@ function rgbToOneChannel(img) {
 }
 
 console.info('Trying to load model at:', modelPath)
-//modelPath = "C:/code/node-cntk/test/model/mnist.cmf"
 
 cntk.loadModel(modelPath, (err, model) => {
     if (err) {
@@ -43,19 +42,20 @@ cntk.loadModel(modelPath, (err, model) => {
         img1 = images1[0];
         pixel.parse(testImagePath2).then(function(images2) {
             img2 = images2[0];
-            // inputs data  can be an object with variable names
-            /*inputData = {
-                'input' : [rgbToOneChannel(img1), rgbToOneChannel(img2) ]
-            }*/
+
+            // inputs data can be an object with variable names
+            // inputData = {
+            //   'input' : [rgbToOneChannel(img1), rgbToOneChannel(img2) ]
+            // }
             
             // this also works
-            //inputData = [[rgbToOneChannel(img1), rgbToOneChannel(img2)]]
+            // inputData = [[rgbToOneChannel(img1), rgbToOneChannel(img2)]]
             
-            // and this works as well
+            // and this works as well:
             inputData = [rgbToOneChannel(img1), rgbToOneChannel(img2)]
 
             // you can optionally specify output nodes that you are interested in
-            //outputNodes = ['output']
+            // outputNodes = ['output']
             console.info('Calling eval')
             model.eval(inputData, /*outputNodes,*/ (err, res)=>{
                 if (err) {
@@ -63,6 +63,9 @@ cntk.loadModel(modelPath, (err, model) => {
                     return;
                 }
                 console.info('Eval result:', res);
+
+                // The result of the evaluation is a one-hot vector
+                // so we use argmax to get the index of the highest value
                 console.info('Classification result (maximum indices):', cntk.utils.argmax(res.output));
             })
         });

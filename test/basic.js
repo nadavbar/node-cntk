@@ -2,7 +2,7 @@ const pixel = require('pixel');
 const path = require('path');
 const cntk = require('../.');
 
-var modelPath = path.join(__dirname, 'mnist', 'mnist_conv.cmf');
+var modelPath = path.join(__dirname, '..', "samples", "models", 'mnist_conv.cmf');
 var testImagePath1 = path.join(__dirname, 'mnist', 'sample_4.bmp');
 var testImagePath2 = path.join(__dirname, 'mnist', 'sample_9.bmp');
 
@@ -40,6 +40,18 @@ cntk.loadModel(modelPath, (err, model) => {
    
     pixel.parse(testImagePath1).then(function(images1){
         img1 = images1[0];
+        var a = []
+        console.info(img1);
+        oneChannel = rgbToOneChannel(img1);
+        console.info(oneChannel)
+        for (var i=0; i< 28*28; i++) {
+            a[i] = oneChannel[i];
+        }
+
+        console.info(Array.apply([], oneChannel).join(","))
+
+        console.info(JSON.stringify(a));
+        
         pixel.parse(testImagePath2).then(function(images2) {
             img2 = images2[0];
 
@@ -52,7 +64,9 @@ cntk.loadModel(modelPath, (err, model) => {
             // inputData = [[rgbToOneChannel(img1), rgbToOneChannel(img2)]]
             
             // and this works as well:
-            inputData = [rgbToOneChannel(img1), rgbToOneChannel(img2)]
+            //inputData = [rgbToOneChannel(img1), rgbToOneChannel(img2)]
+            console.info(a.length);
+            inputData = [a, rgbToOneChannel(img2)]
 
             // you can optionally specify output nodes that you are interested in
             // outputNodes = ['output']

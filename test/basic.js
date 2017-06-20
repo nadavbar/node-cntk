@@ -14,7 +14,7 @@ try {
 }
 catch(ex) {
     console.info("Failed setting GPU device, setting CPU instead");
-    cntk.setDefaultDeviceSync(CNTKDevices.CPU);
+    cntk.setDefaultDeviceSync(cntk.CNTKDevices.CPU);
 }
 
 function rgbToOneChannel(img) {

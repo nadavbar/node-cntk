@@ -4,9 +4,9 @@
   "description": "node-cntk MNIST sample",
   "main": "index.js",
   "dependencies": {
+    "express": "^4.15.3"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "keywords": [
     "CNTK",
     "Deep Learning",

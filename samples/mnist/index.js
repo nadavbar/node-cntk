@@ -27,7 +27,7 @@ app.post('/recognize', function(req, res) {
         }
 
         // so we use argmax to get the index of the highest value
-        var digit = cntk.utils.argmax(evalResult.output);
+        var digit = cntk.utils.argmax(evalResult.output[0]);
         responseBody = JSON.stringify({
             'digit' : digit
         });

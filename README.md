@@ -2,6 +2,8 @@
 
 This node.js module provides node.js native bindings for <a href="">CNTK</a>, Microsoft's deep learning library.
 
+Currently supports Windows x64. Please note that the module is currently bundled with the required CNTK and CUDA DLL files. (Hence the large package size). The additional DLL files are located under the CNTK/DLL folder.
+
 ### What is it good for?
 
 node-cntk is currently meant to only support <b>model evaluation</b>. (e.g. test time).

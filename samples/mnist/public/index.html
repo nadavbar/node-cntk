@@ -8,13 +8,15 @@
   <title>Node-CNTK MNIST Example</title>
 
   <script type="text/javascript" src="./lib/jquery.1.10.2.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 
 <body>
   <div class="container" style=" width: '100%'">
-    <h1  style="text-align-last: center">Node-CNTK MNIST server</h1>
-    <p style="text-align-last: center"> Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info...</p>
-    </div>
+    <h1 style="text-align-last: center">Node-CNTK MNIST server</h1>
+    <p id="descriptionParagraph">This is a sample application of executing a CNTK trained model using a node server, without the need of installing CNTK
+      locally... UPDATE/CHANGE here later</p>
+  </div>
   <!-- jQuery UI -->
   <script type="text/javascript" src="./lib/jquery.ui.core.1.10.3.min.js"></script>
   <script type="text/javascript" src="./lib/jquery.ui.widget.1.10.3.min.js"></script>
@@ -29,15 +31,26 @@
   <script type="text/javascript" src="./plugins/main/src/wPaint.menu.main.js"></script>
 
   <!-- wPaint file -->
-<div style=" width: 600px; display: block;margin-left: auto;margin-right: auto;">
-  <div id="wPaint-demo1" style="display: inline-block; position:relative; border-style: solid;border-width:1px ; width:300px; height:300px; background-color:white; margin-right: 2px; "></div>
-  <div id="result" style="display:inline-block;position:fixed; text-align: center;font-size: 150px; border-style: dashed;border-width:1px;width:300px; height:300px; margin-left: 2px; background-color:white; "></div>
+  <div id="wrapperDiv">
+    <div id="wPaint"></div>
+    <div id="result"></div>
   </div>
   </center>
   <img id="img" src="" />
-  <div id="buttons" style="position:relative;text-align: center">
-    <input type="button" value="Go!" onclick="getpixelarray();" style="position: relative; " />
-    <input type="button" value="Clear" onclick="clear1();" style="position: relative; " />
+  <div id="buttons">
+
+    <div type="button" title="Go!" onclick="analyzeImage();" style="position: relative;display: inline ; cursor: pointer ">
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+        <title>play3</title>
+        <path d="M6 4l20 12-20 12z"></path>
+      </svg>
+    </div>
+    <div type="button" title="Clear" onclick="clearAll();" style="position: relative;display: inline ; cursor: pointer ">
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 28">
+        <title>eraser</title>
+        <path d="M14 22l5.25-6h-12l-5.25 6h12zM29.828 5.172c0.313 0.719 0.187 1.547-0.328 2.141l-14 16c-0.375 0.438-0.922 0.688-1.5 0.688h-12c-0.781 0-1.5-0.453-1.828-1.172-0.313-0.719-0.187-1.547 0.328-2.141l14-16c0.375-0.438 0.922-0.688 1.5-0.688h12c0.781 0 1.5 0.453 1.828 1.172z"></path>
+      </svg>
+    </div>
   </div>
 
   <center id="wPaint-img"></center>
@@ -73,31 +86,30 @@
             data: JSON.stringify({ payload: pixelsArray }),
             success: function (resp) {
               var r = document.getElementById('result');
-              r.innerText  = JSON.parse(resp).digit
+              r.innerText = JSON.parse(resp).digit
             }
           });
         }
     }
 
-    function clear1() {
-      $("#wPaint-demo1").wPaint("clear");
+    function clearAll() {
+      $("#wPaint").wPaint("clear");
       var resultElement = document.getElementById('result');
       resultElement.innerText = ""
     }
 
-    function getpixelarray() {
-      var imageData = $("#wPaint-demo1").wPaint("image");
+    function analyzeImage() {
+      var imageData = $("#wPaint").wPaint("image");
 
       convertBase64ToPixelsArray(imageData);
     }
   </script>
 
   <script type="text/javascript">
-      // init wPaint
-      $('#wPaint-demo1').wPaint({
-      });
+    // init wPaint
+    $('#wPaint').wPaint({
+    });
   </script>
-
 </body>
 
 </html>

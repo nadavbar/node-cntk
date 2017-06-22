@@ -4,6 +4,8 @@ This node.js module provides node.js native bindings for <a href="">CNTK</a>, Mi
 
 Currently supports Windows x64. Please note that the module is currently bundled with the required CNTK and CUDA DLL files. (Hence the large package size). The additional DLL files are located under the CNTK/DLL folder.
 
+A working example of a web app hosting a CNTK model for handwritten digit recognition is available here: https://github.com/nadavbar/node-cntk-mnist-sample
+
 ### What is it good for?
 
 node-cntk is currently meant to only support <b>model evaluation</b>. (e.g. test time).
@@ -98,7 +100,7 @@ Current list of major work items (For full list, please refer to the issues tab)
 - [x] Basic native bindings for setDefaultDevice, loadModel, and eval.
 - [x] Basic sample with local model evaluation.
 - [ ] Extend native Model class APIs to support model inspection in JavaScript code.
-- [ ] MNIST model web server sample.
+- [x] MNIST model web server sample.
 - [ ] Keras sample: train Keras model with CNTK backend and then load it in node.js.
 
 ## License

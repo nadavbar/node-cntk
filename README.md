@@ -14,7 +14,15 @@ That is, you need to first train you model using CNTK's python (or Brain-Script)
 
 ### How to use?
 
-1. Require the module and set the default device:
+1. Install by running:
+
+```
+npm install --save node-cntk
+```
+
+Please note that currently the npm package also contains the CNTK windows binaries, which means that the download might take some time.  
+
+2. Require the module and set the default device:
 
 ```javascript
 const cntk = require('node-cntk');
@@ -31,7 +39,7 @@ catch(ex) {
 
 Note that for now you can set the device globally, in the future this module will support choosing the device per operation.
 
-2. Load the model using the <b>loadModel</b> async method:
+3. Load the model using the <b>loadModel</b> async method:
 
 ```javascript
 // Load the model 
@@ -49,7 +57,7 @@ cntk.loadModel(modelPath, (err, model) => {
 });
 ```
 
-3. Evaluate a sample (or samples) using the loaded model:
+4. Evaluate a sample (or samples) using the loaded model:
 
 ```javascript
 // get the data sample
@@ -92,16 +100,6 @@ model.eval(inputData, /* outputVariables, */ (err, res)=>{
 ```
 
 For a full, working sample of evaluating images of hand written digits using a Convolutional Neural Network model trained on the <a href="http://yann.lecun.com/exdb/mnist/">MNIST dataset</a>, please see <a href="https://github.com/nadavbar/node-cntk/blob/master/test/basic.js">this sample</a>.
-
-### TODO
-
-Current list of major work items (For full list, please refer to the issues tab):
-
-- [x] Basic native bindings for setDefaultDevice, loadModel, and eval.
-- [x] Basic sample with local model evaluation.
-- [ ] Extend native Model class APIs to support model inspection in JavaScript code.
-- [x] MNIST model web server sample.
-- [ ] Keras sample: train Keras model with CNTK backend and then load it in node.js.
 
 ## License
 

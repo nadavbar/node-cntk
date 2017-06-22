@@ -1,4 +1,4 @@
-## node-cntk : Node.js bindings for CNTK (work in progress)
+## node-cntk : Node.js bindings for CNTK
 
 This node.js module provides node.js native bindings for <a href="">CNTK</a>, Microsoft's deep learning library.
 

@@ -1,6 +1,6 @@
 {
   "name": "node-cntk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Call CNTK directly from node.js",
   "main": "main.js",
   "dependencies": {

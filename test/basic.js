@@ -2,7 +2,7 @@ const pixel = require('pixel');
 const path = require('path');
 const cntk = require('../.');
 
-var modelPath = path.join(__dirname, '..', "samples", "models", 'mnist_conv.cmf');
+var modelPath = path.join(__dirname, "mnist", 'mnist_conv.cmf');
 var testImagePath1 = path.join(__dirname, 'mnist', 'sample_4.bmp');
 var testImagePath2 = path.join(__dirname, 'mnist', 'sample_9.bmp');
 
